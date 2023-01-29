@@ -1,0 +1,58 @@
+#tutorial/demo to the team
+#1 Ansible control machine and 2 target machines
+#will install Apache, use variable and handlres
+#1- create 3 VM in the coud account (linux)
+#2- apt-get update  ,  apt-get install software-properties-common
+#3- apt-add-repository ppa:ansible/ansible    , then  , 
+#4- install Ansible  [apt-get install ansible
+#5- update the host file for ansble  /etc/ansible/hosts   and create group called "servers" -- list the IP's/host of the taget 2 machine under that group
+#6- explore Ansible library index
+#7- create ssh key authontization between the Ansible control machine and the target machines  (ssh-keygen    ,  then copy public key to target nodes  [ ssh-copy-id 88.12....target_machine_IP ] to add in the knownhosts file
+#7 follow through with the following yml file
+
+
+---
+
+- name: install apache software on webserver
+  hosts: servers
+  become: yes
+  vars:
+   - new_port: 81
+  handlers:
+   - name: restart Apache
+     service:
+       name: httpd
+       state: restarted
+       enabled: yes
+#     check_mode: true
+  tasks:
+  - name: Install https on servers
+    yum:
+      name: httpd
+      state: present
+#    check_mode: true
+  - name: stop Apache
+    service:
+     name: httpd
+     enabled: true
+     state: stopped
+  - name: start and enable apache
+    service:
+      name: httpd
+      enabled: yes
+      state: started
+#    check_mode: true
+  - name: stop firewalld to allow traffic
+    service:
+     name: firewalld
+     state: stopped
+#    check_mode: true
+  - name: change Apche port
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: 'Listen \d+'
+      line: 'Listen {{new_port}}'
+    #check_mode: true
+    notify:
+    - restart Apache
+                                                              44,1          Bot
